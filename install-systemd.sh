@@ -24,7 +24,7 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 WorkingDirectory=$DIR
-ExecStart=$DIR/.venv/bin/python checker.py
+ExecStart="$DIR/.venv/bin/python" checker.py
 TimeoutStartSec=10min
 UNIT
 

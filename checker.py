@@ -12,6 +12,7 @@ import time
 import traceback
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 from dotenv import load_dotenv
@@ -45,10 +46,20 @@ class SlotAvailable(Exception):
 
 def booking_url():
     """The "Book appointment" link from UDI's receipt page / the police's email."""
-    return os.environ.get("BOOKING_URL") or (
+    url = os.environ.get("BOOKING_URL") or (
         "https://politietbooking.nemo-q.se/Booking/booking/FromSession/avtale"
         f"?organisationId=2&bookingNumber={os.environ['BOOKING_NUMBER']}"
     )
+    if urlparse(url).hostname != "politietbooking.nemo-q.se":  # e.g. a link copied from a phishing email
+        raise ValueError("BOOKING_URL must be a https://politietbooking.nemo-q.se/... link")
+    return url
+
+
+def require_host(page, *allowed):
+    """Refuse to type credentials or codes into a page on an unexpected website."""
+    host = urlparse(page.url).hostname or ""
+    if not any(host == h or host.endswith("." + h) for h in allowed):
+        raise RuntimeError(f"Refusing to continue on unexpected website {host!r}")
 
 
 def step_name(page):
@@ -77,7 +88,7 @@ class Run:
             page.screenshot(path=png, full_page=True)
             html.write_text(page.content())
             self.snaps += [png, html]
-            log.info("Snapshot %s (%s)", png.name, page.url)
+            log.info("Snapshot %s", png.name)
         except Exception:
             log.exception("Snapshot %s failed", name)
 
@@ -103,6 +114,8 @@ class Run:
 
         page.goto("https://minside.udi.no/")
         page.click("#usernamePassword")
+        page.wait_for_selector("#signInName", timeout=60000)
+        require_host(page, "udi.no")  # the password form is served by login.udi.no
         page.fill("#signInName", os.environ["UDI_EMAIL"])
         page.fill("#password", os.environ["UDI_PASSWORD"])
         page.click("#next")
@@ -200,14 +213,14 @@ class Run:
         page.wait_for_function(
             "v => document.getElementById('ReservedDateTime')?.value === v", arg=wanted, timeout=10000
         )
-        log.info("Selected slot %s", wanted)
+        log.info("Selected a slot")  # no time: GitHub Actions logs are public
         return wanted
 
     def book(self, page):
         slot = self.pick_first_slot(page)
         self.snap(page, "slot-selected")
         if self.args.dry_run:
-            raise RuntimeError(f"Dry run: selected {slot} but did not press Next")
+            raise RuntimeError("Dry run: selected a slot but did not press Next")
         button = self.NEXT
         for step in range(6):
             self.submit(page, button)
@@ -277,12 +290,13 @@ class Run:
             ctx = browser.new_context(locale="en-GB", viewport={"width": 1280, "height": 1000})
             ctx.set_default_timeout(30000)
             page = None
+            started = datetime.now(timezone.utc)
             try:
-                started = datetime.now(timezone.utc)
                 page = self.open_booking(ctx)
                 if page is None:
                     return None
                 code = mail.fetch_verification_code(started)
+                require_host(page, "politietbooking.nemo-q.se")
                 page.fill("#VerificationCode", code)
                 self.submit(page, self.NEXT)
                 self.snap(page, "verified")
@@ -307,7 +321,7 @@ class Run:
                 if headful:
                     input("Press Enter to close the browser...")
                 browser.close()
-                mail.cleanup_code_emails()
+                mail.cleanup_code_emails(started)
 
 
 # --- notifications & state ---------------------------------------------------
@@ -353,7 +367,8 @@ def on_available_failed(run, err):
         "⚠️ Police appointment AVAILABLE — auto-booking failed, book manually NOW",
         "A free appointment was found but the script could not finish booking it.\n"
         "It may or may not have been booked — check your email for a confirmation, and if there is none, "
-        "book manually right away:\n\n"
+        "book manually right away. Pause the checker first, so it doesn't request a new code while you "
+        "book (GitHub: set the CHECKER_ENABLED variable to false; Linux: systemctl --user stop udi-checker.timer).\n\n"
         "  https://my.udi.no/?lang=en  →  My applications  →  Go to application  →  Book appointment\n"
         f"  (direct: {booking_url()})\n\n"
         f"Error:\n{err}\n\nScreenshots and page HTML are attached.",
@@ -384,7 +399,7 @@ def notify_too_soon(run):
     """Email once per distinct set of too-soon slots, so a lingering slot doesn't email every run."""
     slots = sorted(run.too_soon)
     if TOO_SOON_FILE.exists() and json.loads(TOO_SOON_FILE.read_text()) == slots:
-        log.info("Too-soon slots %s already notified", slots)
+        log.info("Too-soon slots already notified")
         return
     hours = os.environ.get("MIN_HOURS_AHEAD") or 12
     mail.send_email(
@@ -428,6 +443,7 @@ def main():
     ap.add_argument("--simulate-available", action="store_true", help="only send the 'available, booking failed' email")
     ap.add_argument("--simulate-booked", action="store_true", help="only run the success path (email + disable the schedule)")
     args = ap.parse_args()
+    os.umask(0o077)  # screenshots and state contain personal data: readable by this user only
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s", stream=sys.stdout)
     STATE.mkdir(exist_ok=True)
 

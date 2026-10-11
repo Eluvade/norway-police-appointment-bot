@@ -29,17 +29,6 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || vars.CHECKER_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    env:
-      UDI_EMAIL: ${{ secrets.UDI_EMAIL }}
-      UDI_PASSWORD: ${{ secrets.UDI_PASSWORD }}
-      GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
-      GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-      NOTIFY_TO: ${{ secrets.NOTIFY_TO }}
-      BOOKING_NUMBER: ${{ secrets.BOOKING_NUMBER }}
-      BOOKING_URL: ${{ secrets.BOOKING_URL }}
-      AUTO_BOOK: ${{ vars.AUTO_BOOK || 'true' }}
-      MIN_HOURS_AHEAD: ${{ vars.MIN_HOURS_AHEAD || '12' }}
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
 
@@ -67,8 +56,23 @@ jobs:
           restore-keys: state-
 
       - name: Run
+        # Secrets are only given to this step, not to the install steps above
+        env:
+          UDI_EMAIL: ${{ secrets.UDI_EMAIL }}
+          UDI_PASSWORD: ${{ secrets.UDI_PASSWORD }}
+          GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          NOTIFY_TO: ${{ secrets.NOTIFY_TO }}
+          BOOKING_NUMBER: ${{ secrets.BOOKING_NUMBER }}
+          BOOKING_URL: ${{ secrets.BOOKING_URL }}
+          AUTO_BOOK: ${{ vars.AUTO_BOOK || 'true' }}
+          MIN_HOURS_AHEAD: ${{ vars.MIN_HOURS_AHEAD || '12' }}
+          IMAP_HOST: ${{ vars.IMAP_HOST }}
+          SMTP_HOST: ${{ vars.SMTP_HOST }}
+          GH_TOKEN: ${{ github.token }}
+          MODE: ${{ inputs.mode || 'normal' }}
         run: |
-          case "${{ inputs.mode || 'normal' }}" in
+          case "$MODE" in
             probe)      python checker.py --probe ;;
             test-email) python mail.py --test ;;
             dry-run)    python checker.py --dry-run ;;

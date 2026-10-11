@@ -10,7 +10,6 @@ import sys
 import time
 from datetime import datetime, timedelta, timezone
 from email.message import EmailMessage
-from email.utils import parsedate_to_datetime
 from pathlib import Path
 
 log = logging.getLogger(__name__)
@@ -59,6 +58,12 @@ def _body_code(msg):
     return None
 
 
+def _received(conn, uid):
+    """When the mail server received the message (the Date header can be set to anything by the sender)."""
+    _, data = conn.uid("fetch", uid, "(INTERNALDATE)")
+    return datetime.fromtimestamp(time.mktime(imaplib.Internaldate2tuple(data[0])), timezone.utc)
+
+
 def fetch_verification_code(since: datetime, timeout: int = 180, poll: int = 5) -> str:
     """Poll the inbox for a code email received after `since` and return the code."""
     since = since - timedelta(seconds=30)  # tolerate clock skew
@@ -68,10 +73,12 @@ def fetch_verification_code(since: datetime, timeout: int = 180, poll: int = 5) 
         while time.monotonic() < deadline:
             newest = None
             for uid in _code_message_uids(conn):
+                sent = _received(conn, uid)
+                if sent < since:
+                    continue
                 _, msg_data = conn.uid("fetch", uid, "(BODY.PEEK[])")
                 msg = email.message_from_bytes(msg_data[0][1])
-                sent = parsedate_to_datetime(msg["Date"])
-                if sent < since or not (_subject_code(msg["Subject"]) or _body_code(msg)):
+                if not (_subject_code(msg["Subject"]) or _body_code(msg)):
                     continue
                 if newest is None or sent > newest[0]:
                     newest = (sent, msg)
@@ -97,12 +104,14 @@ def _is_code_email(conn, uid):
     return _subject_code(email.message_from_bytes(data[0][1])["Subject"]) is not None
 
 
-def cleanup_code_emails():
-    """Move the police's verification-code emails to Trash (one arrives every run)."""
+def cleanup_code_emails(since: datetime):
+    """Move this run's verification-code emails to Trash (one arrives every run). Older ones are left
+    alone, so a code you requested yourself while booking by hand isn't moved."""
+    since = since - timedelta(seconds=30)
     try:
         conn = _imap()
         try:
-            uids = [uid for uid in _code_message_uids(conn) if _is_code_email(conn, uid)]
+            uids = [uid for uid in _code_message_uids(conn) if _received(conn, uid) >= since and _is_code_email(conn, uid)]
             if uids:
                 trash = _trash_folder(conn)
                 conn.uid("MOVE", b",".join(uids).decode(), trash)
