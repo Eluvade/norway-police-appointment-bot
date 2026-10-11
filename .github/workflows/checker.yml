@@ -1,0 +1,83 @@
+name: Appointment checker
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"  # GitHub may start scheduled runs late when busy
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: What to run
+        type: choice
+        default: probe
+        options:
+          - probe       # log in with the code, look at the booking page, stop
+          - test-email  # send a test email and check the inbox can be read
+          - dry-run     # full check; if a slot is free, select it but don't book
+          - normal      # the real thing (same as the schedule)
+
+permissions:
+  contents: read
+  actions: write  # lets the script disable this workflow after it has booked
+
+concurrency:
+  group: appointment-checker
+  cancel-in-progress: false
+
+jobs:
+  check:
+    # Scheduled runs only start once you set the repository variable CHECKER_ENABLED=true
+    if: github.event_name == 'workflow_dispatch' || vars.CHECKER_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      UDI_EMAIL: ${{ secrets.UDI_EMAIL }}
+      UDI_PASSWORD: ${{ secrets.UDI_PASSWORD }}
+      GMAIL_ADDRESS: ${{ secrets.GMAIL_ADDRESS }}
+      GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+      NOTIFY_TO: ${{ secrets.NOTIFY_TO }}
+      BOOKING_NUMBER: ${{ secrets.BOOKING_NUMBER }}
+      BOOKING_URL: ${{ secrets.BOOKING_URL }}
+      AUTO_BOOK: ${{ vars.AUTO_BOOK || 'true' }}
+      MIN_HOURS_AHEAD: ${{ vars.MIN_HOURS_AHEAD || '12' }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Cache browser
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+
+      - run: python -m playwright install --with-deps chromium
+
+      # state/ remembers a booking, failure counts and sent notices between runs
+      - name: Restore state
+        uses: actions/cache/restore@v4
+        with:
+          path: state
+          key: state-${{ github.run_id }}
+          restore-keys: state-
+
+      - name: Run
+        run: |
+          case "${{ inputs.mode || 'normal' }}" in
+            probe)      python checker.py --probe ;;
+            test-email) python mail.py --test ;;
+            dry-run)    python checker.py --dry-run ;;
+            *)          python checker.py ;;
+          esac
+
+      - name: Save state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: state
+          key: state-${{ github.run_id }}
