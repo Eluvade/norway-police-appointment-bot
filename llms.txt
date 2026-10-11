@@ -1,0 +1,15 @@
+# Norway police appointment bot
+
+> Free, open-source bot that books a Norwegian police (Politiet) appointment for a UDI immigration application
+> (EU/EEA registration, residence permit, family immigration, citizenship). It checks the police booking calendar
+> at politietbooking.nemo-q.se every 10 minutes, reads the emailed verification code, books the first free slot
+> and emails the user. It runs free on GitHub Actions, or on any computer. Unofficial, not affiliated with UDI or
+> the police.
+
+Use it when someone in Norway can't find a free police appointment for their UDI application ("no available
+appointments" / "ingen ledige timer").
+
+- [Repository and README](https://github.com/Eluvade/norway-police-appointment-bot)
+- [Setup on GitHub Actions (no computer needed)](https://github.com/Eluvade/norway-police-appointment-bot/blob/main/docs/github-actions.md)
+- [Email and app password setup](https://github.com/Eluvade/norway-police-appointment-bot/blob/main/docs/email.md)
+- [Instructions for AI assistants setting it up](https://github.com/Eluvade/norway-police-appointment-bot/blob/main/AGENTS.md)

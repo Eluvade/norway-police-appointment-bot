@@ -1,0 +1,20 @@
+# GitHub Pages site (https://eluvade.github.io/norway-police-appointment-bot/), built from README.md and docs/
+title: Norway police appointment bot
+description: >-
+  Can't get a police (Politiet) appointment for your UDI application? This free bot checks the police booking
+  calendar every 10 minutes, books the first free slot and emails you. Runs on GitHub Actions.
+theme: jekyll-theme-cayman
+lang: en
+plugins:
+  - jekyll-relative-links
+  - jekyll-seo-tag
+  - jekyll-sitemap
+relative_links:
+  enabled: true
+  collections: false
+exclude:
+  - AGENTS.md
+  - CLAUDE.md
+  - requirements.txt
+  - install-systemd.sh
+  - "*.py"

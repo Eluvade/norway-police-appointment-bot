@@ -1,4 +1,21 @@
-# UDI police appointment bot (Norway)
+<div align="center">
+  <a href="https://eluvade.com/">
+    <img alt="Developer Logo" title="Bunny Eluvade" src="https://avatars.githubusercontent.com/u/32546052?v=4" width="66">
+  </a>
+</div>
+
+<h1 align="center">UDI police appointment bot (Norway)</h1>
+
+<p align="center">
+  <a href="docs/github-actions.md"><img alt="Runs free on GitHub Actions" src="https://img.shields.io/badge/runs%20on-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white"></a>
+  <a href="requirements.txt"><img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white"></a>
+  <a href="https://playwright.dev/python/"><img alt="Playwright" src="https://img.shields.io/badge/browser-Playwright-2EAD33?logo=playwright&logoColor=white"></a>
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+</p>
+
+<p align="center">
+  <img alt="Police appointment bot: checks the police booking calendar every 10 minutes, books the first free slot and emails you" src="docs/images/banner.png" width="720">
+</p>
 
 **Can't get an appointment with the police (Politiet) for your UDI application?** This script checks the police
 booking calendar (`politietbooking.nemo-q.se`) every 10 minutes for you. When a slot opens it books it, and it
@@ -16,6 +33,16 @@ etc. It was tested with an EU/EEA registration in Oslo.
 *Unofficial. Not affiliated with UDI or the Norwegian Police. Use at your own risk.*
 
 ## What it does
+
+```mermaid
+flowchart LR
+    A["⏰ Every 10 minutes"] --> B["Open your police<br>booking link"]
+    B --> C["Read the code<br>from your email"]
+    C --> D{"Free slot?"}
+    D -- no --> A
+    D -- yes --> E["Book it"]
+    E --> F["✅ Email you<br>and switch off"]
+```
 
 Every 10 minutes it opens your booking link, reads the police's verification code from your email, and looks
 for a free slot. If there is one at least 12 hours away, it books it, emails you, and switches itself off.
