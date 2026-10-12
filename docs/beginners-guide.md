@@ -27,7 +27,8 @@ when GitHub asks.
 ## Step 2: Make your own copy of the robot
 
 1. Open <https://github.com/Eluvade/norway-police-appointment-bot>.
-2. Near the top right, click the green **Use this template** button, then **Create a new repository**.
+2. Next to the **Code** button, click the green **Use this template** button, then **Create a new repository**.
+   (Don't see it? You need to be signed in to GitHub first.)
 3. In **Repository name**, type any name, for example `police-appointment`.
 4. Leave it on **Public** (it's free that way, and your passwords stay hidden: see the note at the end).
 5. Click **Create repository**.
