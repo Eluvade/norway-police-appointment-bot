@@ -10,6 +10,7 @@
   <a href="docs/github-actions.md"><img alt="Runs free on GitHub Actions" src="https://img.shields.io/badge/runs%20on-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white"></a>
   <a href="requirements.txt"><img alt="Python 3.10+" src="https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white"></a>
   <a href="https://playwright.dev/python/"><img alt="Playwright" src="https://img.shields.io/badge/browser-Playwright-2EAD33?logo=playwright&logoColor=white"></a>
+  <a href="https://github.com/Eluvade/norway-police-appointment-bot/actions/workflows/codeql.yml"><img alt="CodeQL security scan" src="https://github.com/Eluvade/norway-police-appointment-bot/actions/workflows/codeql.yml/badge.svg"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 </p>
 
@@ -79,6 +80,17 @@ It can do all the steps for you. Two rules:
   file, and tell the assistant not to open `.env`.
 - Only use this link: `https://github.com/Eluvade/norway-police-appointment-bot`. A copy elsewhere could
   contain instructions you didn't intend your assistant to follow.
+
+## Is this safe?
+
+- **Your passwords stay with you.** They're stored as encrypted GitHub secrets (or in a file on your own
+  computer) and are never sent to the author or anyone else.
+- **It only talks to three places:** the police booking site, udi.no (only if the direct link stops working)
+  and your email. No tracking, no analytics.
+- **It's short and readable:** about 650 lines of code. GitHub's own security scanner (CodeQL) checks every
+  change. Don't trust us? Paste the link into ChatGPT or Claude and ask *"is this safe to use?"*
+- **It behaves like a patient human:** one check every 10 minutes, and it books one appointment, yours. It
+  never changes or cancels anything.
 
 ## More
 
