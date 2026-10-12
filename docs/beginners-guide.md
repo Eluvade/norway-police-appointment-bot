@@ -35,6 +35,8 @@ when GitHub asks.
 
 You now have your own copy. Everything from here happens in **your** copy, not on the original page.
 
+📷 *Pictures of these buttons: [GitHub's guide to using a template](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template).*
+
 ## Step 3: Get a Gmail "app password"
 
 The robot needs to read the police's verification code from your email. Gmail doesn't let programs use your
@@ -47,6 +49,8 @@ normal password, so you create a separate one just for this.
 4. Type any name (for example `police robot`) and click **Create**.
 5. Google shows a password of 16 letters. Copy it **without the spaces** and keep the page open for a moment;
    you'll need it in the next step. Google shows it only once.
+
+📷 *More help: [Google's page about app passwords](https://support.google.com/accounts/answer/185833).*
 
 ## Step 4: Give the robot your details
 
@@ -70,6 +74,8 @@ In your copy on GitHub:
 Secrets can't be read by anyone after you save them, not even by you. If you make a typo, click the secret's
 pencil icon and type it again.
 
+📷 *Pictures of these pages: [GitHub's guide to secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets) (see "Creating secrets for a repository").*
+
 ## Step 5: Test it
 
 1. Click the **Actions** tab at the top. If GitHub asks, click the green button to enable workflows.
@@ -82,11 +88,15 @@ pencil icon and type it again.
    email and stops, without booking anything. After a minute or two, click the run, then **check**, and look
    at the last lines. They should say `Probe: code accepted, now at step 'Select office, date and time'`.
 
+📷 *Pictures of the Run workflow button: [GitHub's guide to running a workflow](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow).*
+
 ## Step 6: Switch it on
 
 1. Go to **Settings → Secrets and variables → Actions** again.
 2. Click the **Variables** tab (next to **Secrets**), then **New repository variable**.
 3. Name: `CHECKER_ENABLED`. Value: `true`. Click **Add variable**.
+
+📷 *Pictures of this page: [GitHub's guide to variables](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables) (see "Creating configuration variables for a repository").*
 
 That's it. The robot now checks every 10 minutes. When it books an appointment, it emails you
 **"✅ Police appointment BOOKED"** and switches itself off. You'll also get an official confirmation from the
