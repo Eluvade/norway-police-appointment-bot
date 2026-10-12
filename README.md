@@ -32,6 +32,8 @@ etc. It was tested with an EU/EEA registration in Oslo.
 
 *Unofficial. Not affiliated with UDI or the Norwegian Police. Use at your own risk.*
 
+### 👉 [Start here: step-by-step guide, no coding needed](docs/beginners-guide.md)
+
 ## What it does
 
 ```mermaid
@@ -56,7 +58,7 @@ it yourself.
 2. **The email account where the police's emails arrive** (the one you registered with UDI), and an
    **app password** for it. Gmail is tested: see [how to get a Gmail app password](docs/email.md).
    Other providers may work too.
-3. **Somewhere to run it every 10 minutes.** Pick one:
+3. **Somewhere to run it every 10 minutes.** Pick one. **Never used GitHub? Follow the [step-by-step guide](docs/beginners-guide.md).**
 
 | Option | Cost | Works while your computer is off? |
 |---|---|---|
